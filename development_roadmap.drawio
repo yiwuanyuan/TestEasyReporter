@@ -1,0 +1,152 @@
+<mxGraphModel>
+  <root>
+    <mxCell id="0"/>
+    <mxCell id="1" parent="0"/>
+    
+    <!-- Title -->
+    <mxCell id="title" value="氦检漏计算器 — 下一步开发路线图" style="text;fontSize=20;fontStyle=1;fillColor=#1565C0;fontColor=#FFFFFF;align=center;" vertex="1" parent="1">
+      <mxGeometry x="120" y="20" width="560" height="40" as="geometry"/>
+    </mxCell>
+    
+    <!-- Phase 1 -->
+    <mxCell id="p1-box" value="" style="rounded=1;fillColor=#E3F2FD;strokeColor=#1565C0;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="30" y="80" width="740" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="p1-title" value="Phase 1 — 基础补全 (3-5 天)" style="text;fontSize=14;fontStyle=1;fillColor=#1565C0;fontColor=#FFFFFF;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="85" width="200" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="p1-1" value="Settings 设置页&#xa;主题切换 / 默认验收值" style="rounded=1;fillColor=#BBDEFB;strokeColor=#1565C0;" vertex="1" parent="1">
+      <mxGeometry x="50" y="125" width="155" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p1-2" value="Help 帮助页&#xa;公式说明 / 操作指南" style="rounded=1;fillColor=#BBDEFB;strokeColor=#1565C0;" vertex="1" parent="1">
+      <mxGeometry x="220" y="125" width="155" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p1-3" value="Room AutoMigration&#xa;exportSchema + 迁移测试" style="rounded=1;fillColor=#BBDEFB;strokeColor=#1565C0;" vertex="1" parent="1">
+      <mxGeometry x="390" y="125" width="180" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p1-4" value="ProGuard/R8 规则&#xa;Hilt + Gson + Room 配置" style="rounded=1;fillColor=#BBDEFB;strokeColor=#1565C0;" vertex="1" parent="1">
+      <mxGeometry x="585" y="125" width="170" height="45" as="geometry"/>
+    </mxCell>
+    
+    <!-- Arrow 1→2 -->
+    <mxCell id="a1" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#666666;" edge="1" parent="1" source="p1-box" target="p2-box">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    
+    <!-- Phase 2 -->
+    <mxCell id="p2-box" value="" style="rounded=1;fillColor=#E8F5E9;strokeColor=#2E7D32;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="30" y="210" width="740" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2-title" value="Phase 2 — 设备管理 (3-4 天)" style="text;fontSize=14;fontStyle=1;fillColor=#2E7D32;fontColor=#FFFFFF;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="215" width="200" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2-1" value="Equipment Entity + DAO&#xa;设备 CRUD" style="rounded=1;fillColor=#C8E6C9;strokeColor=#2E7D32;" vertex="1" parent="1">
+      <mxGeometry x="50" y="255" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2-2" value="Equipment Screen&#xa;列表 + 新增/编辑" style="rounded=1;fillColor=#C8E6C9;strokeColor=#2E7D32;" vertex="1" parent="1">
+      <mxGeometry x="240" y="255" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2-3" value="Calibration Reminder&#xa;WorkManager 周期检查" style="rounded=1;fillColor=#C8E6C9;strokeColor=#2E7D32;" vertex="1" parent="1">
+      <mxGeometry x="430" y="255" width="175" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p2-4" value="Record↔Equipment 关联&#xa;检测记录关联设备" style="rounded=1;fillColor=#C8E6C9;strokeColor=#2E7D32;" vertex="1" parent="1">
+      <mxGeometry x="620" y="255" width="135" height="45" as="geometry"/>
+    </mxCell>
+    
+    <!-- Arrow 2→3 -->
+    <mxCell id="a2" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#666666;" edge="1" parent="1" source="p2-box" target="p3-box">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    
+    <!-- Phase 3 -->
+    <mxCell id="p3-box" value="" style="rounded=1;fillColor=#FFF3E0;strokeColor=#E65100;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="30" y="340" width="740" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3-title" value="Phase 3 — 发布准备 (2-3 天)" style="text;fontSize=14;fontStyle=1;fillColor=#E65100;fontColor=#FFFFFF;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="345" width="200" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3-1" value="Release 签名配置&#xa;keystore + buildTypes" style="rounded=1;fillColor=#FFE0B2;strokeColor=#E65100;" vertex="1" parent="1">
+      <mxGeometry x="50" y="385" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3-2" value="AAB + APK 双构建&#xa;bundletool 验证" style="rounded=1;fillColor=#FFE0B2;strokeColor=#E65100;" vertex="1" parent="1">
+      <mxGeometry x="240" y="385" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3-3" value="R8 代码混淆验证&#xa;keep rules 测试" style="rounded=1;fillColor=#FFE0B2;strokeColor=#E65100;" vertex="1" parent="1">
+      <mxGeometry x="430" y="385" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p3-4" value="APK ≤15MB 目标&#xa;资源压缩 + 混淆" style="rounded=1;fillColor=#FFE0B2;strokeColor=#E65100;" vertex="1" parent="1">
+      <mxGeometry x="620" y="385" width="135" height="45" as="geometry"/>
+    </mxCell>
+    
+    <!-- Arrow 3→4 -->
+    <mxCell id="a3" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#666666;" edge="1" parent="1" source="p3-box" target="p4-box">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    
+    <!-- Phase 4 -->
+    <mxCell id="p4-box" value="" style="rounded=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="30" y="470" width="740" height="100" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4-title" value="Phase 4 — 高级特性 (5-7 天)" style="text;fontSize=14;fontStyle=1;fillColor=#7B1FA2;fontColor=#FFFFFF;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="475" width="200" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4-1" value="平板自适应布局&#xa;ListDetailPaneScaffold" style="rounded=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;" vertex="1" parent="1">
+      <mxGeometry x="50" y="515" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4-2" value="批量导出&#xa;多选 → 导出 CSV/PDF" style="rounded=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;" vertex="1" parent="1">
+      <mxGeometry x="240" y="515" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4-3" value="JSON 数据导入&#xa;从文件还原记录" style="rounded=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;" vertex="1" parent="1">
+      <mxGeometry x="430" y="515" width="170" height="45" as="geometry"/>
+    </mxCell>
+    <mxCell id="p4-4" value="统计仪表盘&#xa;合格率 / 趋势图表" style="rounded=1;fillColor=#E1BEE7;strokeColor=#7B1FA2;" vertex="1" parent="1">
+      <mxGeometry x="620" y="515" width="135" height="45" as="geometry"/>
+    </mxCell>
+    
+    <!-- Arrow 4→5 -->
+    <mxCell id="a4" style="endArrow=classic;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#666666;" edge="1" parent="1" source="p4-box" target="p5-box">
+      <mxGeometry relative="1" as="geometry"/>
+    </mxCell>
+    
+    <!-- Phase 5 -->
+    <mxCell id="p5-box" value="" style="rounded=1;fillColor=#FCE4EC;strokeColor=#C62828;dashed=1;" vertex="1" parent="1">
+      <mxGeometry x="30" y="600" width="740" height="80" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5-title" value="Phase 5 — 质量保障 (持续)" style="text;fontSize=14;fontStyle=1;fillColor=#C62828;fontColor=#FFFFFF;rounded=1;" vertex="1" parent="1">
+      <mxGeometry x="40" y="605" width="200" height="28" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5-1" value="Compose UI 测试&#xa;关键页面截图对比" style="rounded=1;fillColor=#FFCDD2;strokeColor=#C62828;" vertex="1" parent="1">
+      <mxGeometry x="50" y="640" width="170" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5-2" value="Room Migration 测试&#xa;MigrationTestHelper" style="rounded=1;fillColor=#FFCDD2;strokeColor=#C62828;" vertex="1" parent="1">
+      <mxGeometry x="240" y="640" width="170" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5-3" value="边界条件 + 模糊测试&#xa;大量参数组合验证" style="rounded=1;fillColor=#FFCDD2;strokeColor=#C62828;" vertex="1" parent="1">
+      <mxGeometry x="430" y="640" width="170" height="35" as="geometry"/>
+    </mxCell>
+    <mxCell id="p5-4" value="CI/CD GitHub Actions&#xa;自动构建 + 测试 + 签名" style="rounded=1;fillColor=#FFCDD2;strokeColor=#C62828;" vertex="1" parent="1">
+      <mxGeometry x="620" y="640" width="135" height="35" as="geometry"/>
+    </mxCell>
+    
+    <!-- Legend -->
+    <mxCell id="legend-title" value="图例" style="text;fontSize=11;fontStyle=1;fillColor=#EEEEEE;align=center;" vertex="1" parent="1">
+      <mxGeometry x="30" y="710" width="50" height="20" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg-mvp" value="MVP 已完成 ✅" style="rounded=1;fillColor=#E3F2FD;strokeColor=#1565C0;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="90" y="708" width="100" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg-p1" value="下一步 P2" style="rounded=1;fillColor=#E8F5E9;strokeColor=#2E7D32;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="200" y="708" width="80" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg-p2" value="发布" style="rounded=1;fillColor=#FFF3E0;strokeColor=#E65100;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="290" y="708" width="60" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg-p3" value="增强 P3" style="rounded=1;fillColor=#F3E5F5;strokeColor=#7B1FA2;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="360" y="708" width="70" height="22" as="geometry"/>
+    </mxCell>
+    <mxCell id="leg-p4" value="质量" style="rounded=1;fillColor=#FCE4EC;strokeColor=#C62828;fontSize=10;" vertex="1" parent="1">
+      <mxGeometry x="440" y="708" width="60" height="22" as="geometry"/>
+    </mxCell>
+
+  </root>
+</mxGraphModel>

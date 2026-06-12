@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Compose 应用的基础主题 — 必须兼容 enableEdgeToEdge() -->
+    <style name="Theme.HeliumLeakDetector" parent="android:Theme.Material.Light.NoActionBar">
+        <!-- API 35+ 使用 enableEdgeToEdge() 替代以下两个属性 -->
+    </style>
+</resources>
