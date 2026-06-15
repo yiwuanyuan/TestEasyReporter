@@ -45,4 +45,8 @@ sealed interface Routes {
     /** 编辑设备 */
     @Serializable
     data class EquipmentEdit(val equipmentId: Long) : Routes
+
+    /** 试验设备选择（关联到记录） */
+    @Serializable
+    data class EquipmentSelector(val fromRecordId: Long = -1) : Routes
 }

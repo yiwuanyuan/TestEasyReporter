@@ -23,6 +23,10 @@ interface EquipmentDao {
     @Query("SELECT * FROM equipment ORDER BY calibration_due_date ASC")
     fun getAllFlow(): Flow<List<EquipmentEntity>>
 
+    /** 一次性查询全部设备（非 Flow，用于非协程上下文） */
+    @Query("SELECT * FROM equipment ORDER BY calibration_due_date ASC")
+    suspend fun getAll(): List<EquipmentEntity>
+
     /** 按状态筛选 */
     @Query("SELECT * FROM equipment WHERE status = :status ORDER BY calibration_due_date ASC")
     fun getByStatusFlow(status: String): Flow<List<EquipmentEntity>>

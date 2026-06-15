@@ -34,7 +34,10 @@ fun EquipmentListScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("设备管理") })
+            TopAppBar(
+                title = { Text("设备管理", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.surface),
+            )
         },
         floatingActionButton = {
             FloatingActionButton(onClick = onCreateClick) {
@@ -79,10 +82,13 @@ private fun FilterRow(current: String, onSelect: (String) -> Unit) {
         "all" to "全部", "active" to "有效", "expiring" to "即将到期", "expired" to "已过期"
     )
     ScrollableTabRow(selectedTabIndex = filters.indexOfFirst { it.first == current }.coerceAtLeast(0),
-        modifier = Modifier.fillMaxWidth(), edgePadding = 16.dp, divider = {}) {
+        modifier = Modifier.fillMaxWidth(), edgePadding = 16.dp, divider = {},
+        containerColor = MaterialTheme.colorScheme.surface) {
         filters.forEachIndexed { _, (key, label) ->
             FilterChip(selected = current == key, onClick = { onSelect(key) },
-                label = { Text(label) }, modifier = Modifier.padding(horizontal = 4.dp))
+                label = { Text(label, style = MaterialTheme.typography.labelLarge) },
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.padding(horizontal = 4.dp))
         }
     }
 }

@@ -57,11 +57,28 @@ interface RecordDao {
         SELECT * FROM detection_records
         WHERE is_deleted = 0
           AND (report_no LIKE '%' || :query || '%'
+            OR contract_no LIKE '%' || :query || '%'
             OR product_name LIKE '%' || :query || '%'
-            OR weld_name LIKE '%' || :query || '%')
+            OR product_code LIKE '%' || :query || '%'
+            OR product_serial_no LIKE '%' || :query || '%'
+            OR weld_name LIKE '%' || :query || '%'
+            OR inspection_area LIKE '%' || :query || '%')
         ORDER BY created_at DESC
     """)
     fun searchFlow(query: String): Flow<List<DetectionRecordEntity>>
+
+    // ====== 按试验日期筛选 ======
+
+    @Query("""
+        SELECT * FROM detection_records
+        WHERE is_deleted = 0 AND test_date = :date
+        ORDER BY created_at DESC
+    """)
+    fun getByDateFlow(date: String): Flow<List<DetectionRecordEntity>>
+
+    /** 获取所有有记录的日期（用于日历展示） */
+    @Query("SELECT DISTINCT test_date FROM detection_records WHERE is_deleted = 0 ORDER BY test_date DESC")
+    fun getAllDatesFlow(): Flow<List<String>>
 
     // ====== 计数 ======
 

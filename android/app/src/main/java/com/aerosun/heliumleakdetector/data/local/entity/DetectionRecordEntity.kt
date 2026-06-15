@@ -39,6 +39,7 @@ data class DetectionRecordEntity(
     @ColumnInfo(name = "product_name")     val productName: String = "",
     @ColumnInfo(name = "weld_name")        val weldName: String = "",
     @ColumnInfo(name = "inspection_area")  val inspectionArea: String = "",
+    @ColumnInfo(name = "product_serial_no") val productSerialNo: String = "",   // 出厂编号
     @ColumnInfo(name = "test_method")      val testMethod: String = "Helium Spray Test",
     @ColumnInfo(name = "test_procedure_no") val testProcedureNo: String = "",
 
@@ -77,6 +78,9 @@ data class DetectionRecordEntity(
     @ColumnInfo(name = "acc_limit_mantissa") val acceptanceLimitMantissa: Double = 1.0,
     @ColumnInfo(name = "acc_limit_exponent") val acceptanceLimitExponent: Int = -10,
     @ColumnInfo(name = "temp_coefficient") val tempCoefficient: Double = 0.03,
+
+    // ====== 设备关联 (JSON 数组: [1,2,3]) ======
+    @ColumnInfo(name = "equipment_ids") val equipmentIds: String = "",
 
     // ====== 计算结果 (冗余存储, 白色底) ======
     @ColumnInfo(name = "Q0_value")   val q0Value: Double = 0.0,

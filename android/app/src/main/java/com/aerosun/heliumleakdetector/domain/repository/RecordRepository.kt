@@ -16,4 +16,6 @@ interface RecordRepository {
     fun getByAcceptableFlow(acceptable: Boolean): Flow<List<DetectionRecordEntity>>
     fun getFavoritesFlow(): Flow<List<DetectionRecordEntity>>
     suspend fun count(): Int
+    fun getByDateFlow(date: String): Flow<List<DetectionRecordEntity>>
+    fun getAllDatesFlow(): Flow<List<String>>
 }

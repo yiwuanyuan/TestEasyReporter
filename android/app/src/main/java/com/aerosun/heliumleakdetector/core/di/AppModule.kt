@@ -33,7 +33,11 @@ object AppModule {
             HeliumDatabase::class.java,
             "helium_database",
         )
-            .addMigrations(HeliumDatabase.MIGRATION_1_2, HeliumDatabase.MIGRATION_2_3)
+            .addMigrations(
+    HeliumDatabase.MIGRATION_1_2,
+    HeliumDatabase.MIGRATION_2_3,
+    HeliumDatabase.MIGRATION_3_4
+)
             .build()
 
     @Provides

@@ -19,7 +19,7 @@ import com.aerosun.heliumleakdetector.data.local.entity.EquipmentEntity
  */
 @Database(
     entities = [DetectionRecordEntity::class, EquipmentEntity::class],
-    version = 3,
+    version = 4,
     exportSchema = false,
 )
 @androidx.room.TypeConverters(Converters::class)
@@ -59,6 +59,14 @@ abstract class HeliumDatabase : RoomDatabase() {
                 db.execSQL("ALTER TABLE `detection_records` ADD COLUMN `mn_meas_exponent` INTEGER NOT NULL DEFAULT -14")
                 db.execSQL("ALTER TABLE `detection_records` ADD COLUMN `acc_limit_mantissa` REAL NOT NULL DEFAULT 1.0")
                 db.execSQL("ALTER TABLE `detection_records` ADD COLUMN `acc_limit_exponent` INTEGER NOT NULL DEFAULT -10")
+            }
+        }
+
+        /** v3 → v4: 新增 product_serial_no + equipment_ids */
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `detection_records` ADD COLUMN `product_serial_no` TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE `detection_records` ADD COLUMN `equipment_ids` TEXT NOT NULL DEFAULT ''")
             }
         }
     }

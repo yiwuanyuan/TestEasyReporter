@@ -2,9 +2,12 @@ package com.aerosun.heliumleakdetector.data.export
 
 import android.content.Context
 import com.aerosun.heliumleakdetector.data.local.entity.DetectionRecordEntity
+import com.aerosun.heliumleakdetector.data.local.entity.EquipmentEntity
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
 import java.util.zip.ZipOutputStream
@@ -26,7 +29,8 @@ object DocxTemplateFiller {
         }
 
         val docXml = String(entries["word/document.xml"]!!, Charsets.UTF_8)
-        val data = buildDataMap(record)
+        val equipment = loadEquipment(context, record.equipmentIds)
+        val data = buildDataMap(record, equipment)
         val filledXml = fillMarkers(docXml, data)
         entries["word/document.xml"] = filledXml.toByteArray(Charsets.UTF_8)
 
@@ -47,35 +51,27 @@ object DocxTemplateFiller {
 
     private fun fillMarkers(xml: String, data: Map<String, String>): String {
         var result = xml
-        // 简单替换: 先尝试直接替换 (适合大多数情况，{{key}} 在同一个 <w:t> 内)
         for ((key, value) in data) {
             val escaped = escapeXml(value)
-            // 尝试直接替换 {{key}} 为 value
             val marker = "{{$key}}"
             if (result.contains(marker)) {
                 result = result.replace(marker, escaped)
                 continue
             }
-            // 跨标签拆分: 构建正则匹配 {{ 和 }} 之间可能有 XML 标签的情况
             val pattern = buildCrossTagPattern(key)
             result = pattern.replace(result, escaped)
         }
-        // 清理残留的孤立 {{ 和 }}（模板中多处的大括号标记）
         result = result.replace(Regex("\\{\\{[^}]*\\}\\}"), "")
         return result
     }
 
-    /**
-     * 构建跨标签匹配模式: 匹配 {{ 和 key 和 }} 之间包含任意 XML 标签的情况。
-     * 例如 key="Report No." 时, 匹配:
-     *   {{Report No.}}
-     *   {{</w:t></w:r><w:r><w:t>Report</w:t></w:r><w:r><w:t> No.}}
-     */
     private fun buildCrossTagPattern(key: String): Regex {
-        val chars = "\\{\\{${Regex.escape(key)}\\}\\}"
-        val withTags = "\\{\\{(<[^>]*>)*${Regex.escape(key)}(<[^>]*>)*\\}\\}"
+        // 在 key 的每个字符中间插入 (<[^>]*>)*? 以匹配跨标签拆分
+        // 例如 LDM → L(<[^>]*>)*?D(<[^>]*>)*?M
+        val pattern = key.toList().joinToString("(<[^>]*>)*?") { Regex.escape(it.toString()) }
+        val withTags = "\\{\\{(<[^>]*>)*?$pattern(<[^>]*>)*?\\}\\}"
         return try {
-            Regex(withTags)
+            Regex(withTags, RegexOption.DOT_MATCHES_ALL)
         } catch (e: Exception) {
             Regex(Regex.escape("{{$key}}"))
         }
@@ -90,28 +86,69 @@ object DocxTemplateFiller {
 
     // ---- 数据构建 ----
 
-    private fun buildDataMap(r: DetectionRecordEntity): Map<String, String> {
+    // ---- 从 equipmentIds JSON 加载设备数据 ----
+
+    private fun loadEquipment(context: Context, equipmentIdsJson: String): List<EquipmentEntity> {
+        if (equipmentIdsJson.isBlank()) return emptyList()
+        val ids: List<Long> = try {
+            val type = object : TypeToken<List<Long>>() {}.type
+            Gson().fromJson(equipmentIdsJson, type) ?: emptyList()
+        } catch (_: Exception) { return emptyList() }
+        if (ids.isEmpty()) return emptyList()
+
+        return try {
+            val db = androidx.room.Room.databaseBuilder(
+                context.applicationContext,
+                com.aerosun.heliumleakdetector.data.local.HeliumDatabase::class.java,
+                "helium_database"
+            ).build()
+            val all = kotlinx.coroutines.runBlocking {
+                db.equipmentDao().getAll()
+            }
+            db.close()
+            all.filter { it.id in ids }
+        } catch (_: Exception) { emptyList() }
+    }
+
+    // ---- 数据构建 ----
+
+    private fun buildDataMap(r: DetectionRecordEntity, equipment: List<EquipmentEntity> = emptyList()): Map<String, String> {
         fun sci(v: Double) = "%.3E".format(v)
         fun sci4(v: Double) = "%.4E".format(v)
-
         val accLimit = r.acceptanceLimitValue()
         val passed = r.isAcceptable
+
+        fun eq(type: String): EquipmentEntity? = equipment.firstOrNull { t ->
+            t.type.contains(type) || t.name.contains(type)
+        }
+        val ld = eq("检漏仪")
+        val sl = eq("标准漏孔")
+        val tm = eq("温度计")
+        val hc = eq("氦浓度计")
 
         return mapOf(
             "Report No." to r.reportNo,
             "Contract No" to r.contractNo,
             "Product Name" to r.productName,
-            "Serial No." to r.productCode,
+            "Serial No." to r.productSerialNo.ifEmpty { r.productCode },
             "Temperature" to "${r.temperature}",
             "Test Date" to r.testDate,
             "Relative Humidity" to "${r.humidity}",
             "Inspection Area" to r.inspectionArea,
             "Test Procedure No." to r.testProcedureNo,
             "Acceptance" to "<${"%.1E".format(accLimit)} Pa·m³/s",
-            "LDM" to "", "LDN" to "", "LDVP" to "",
-            "SLM" to "", "SLN" to "", "SLVP" to "",
-            "TM" to "", "TN" to "", "TVP" to "",
-            "HCM" to "", "HCN" to "", "HCVP" to "",
+            "LDM" to (ld?.model ?: ""),
+            "LDN" to (ld?.serialNo ?: ""),
+            "LDVP" to (ld?.calibrationDueDate?.let { if (it > 0) dateFmt.format(Date(it)) else "" } ?: ""),
+            "SLM" to (sl?.model ?: ""),
+            "SLN" to (sl?.serialNo ?: ""),
+            "SLVP" to (sl?.calibrationDueDate?.let { if (it > 0) dateFmt.format(Date(it)) else "" } ?: ""),
+            "TM" to (tm?.model ?: ""),
+            "TN" to (tm?.serialNo ?: ""),
+            "TVP" to (tm?.calibrationDueDate?.let { if (it > 0) dateFmt.format(Date(it)) else "" } ?: ""),
+            "HCM" to (hc?.model ?: ""),
+            "HCN" to (hc?.serialNo ?: ""),
+            "HCVP" to (hc?.calibrationDueDate?.let { if (it > 0) dateFmt.format(Date(it)) else "" } ?: ""),
             "Q0" to sci(r.q0Value),
             "QT" to sci4(r.qtValue),
             "I0" to sci(r.i0Value),
@@ -126,8 +163,10 @@ object DocxTemplateFiller {
             "TS" to "${r.tResponse}",
             "TG" to "${r.tgPercent}",
             "Qs" to sci4(r.qMeasured),
-            "Qcompare" to if (passed) "less than" else "greater than",
-            "Qresult" to if (passed) "Pass" else "Fail",
+            "Qcompare_zh" to if (passed) "小于" else "大于",
+            "Qcompare_en" to if (passed) "less than" else "greater than",
+            "Qresult_zh" to if (passed) "合格" else "不合格",
+            "Qresult_en" to if (passed) "Pass" else "Fail",
         )
     }
 }

@@ -24,6 +24,7 @@ data class TestInput(
     val productName: String = "",
     val weldName: String = "",
     val inspectionArea: String = "",
+    val productSerialNo: String = "",      // 出厂编号（非必填）
     val testMethod: String = "Helium Spray Test",
     val testProcedureNo: String = "",
 

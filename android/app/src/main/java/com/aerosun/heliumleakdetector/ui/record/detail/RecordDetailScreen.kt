@@ -11,6 +11,9 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,7 +27,10 @@ import com.aerosun.heliumleakdetector.data.export.PdfReportGenerator
 import com.aerosun.heliumleakdetector.data.export.ReportExporter
 import com.aerosun.heliumleakdetector.domain.model.TestInput
 import com.aerosun.heliumleakdetector.domain.model.TestResult
+import com.aerosun.heliumleakdetector.data.local.entity.EquipmentEntity
 import com.aerosun.heliumleakdetector.ui.record.edit.components.ParamSection
+import com.aerosun.heliumleakdetector.ui.theme.FailRed
+import com.aerosun.heliumleakdetector.ui.theme.WarningOrange
 
 /**
  * 记录详情页（工业级重构版）— 工业仪表盘 Telemetry 风格。
@@ -36,6 +42,7 @@ import com.aerosun.heliumleakdetector.ui.record.edit.components.ParamSection
 fun RecordDetailScreen(
     recordId: Long,
     onNavigateBack: () -> Unit,
+    onOpenEquipmentSelector: (Set<Long>) -> Unit = {},
     viewModel: RecordDetailViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(recordId) { viewModel.loadRecord(recordId) }
@@ -43,6 +50,25 @@ fun RecordDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     var showExportMenu by remember { mutableStateOf(false) }
+
+    // 监听从 EquipmentSelector 返回的设备选择结果
+    // 使用 HeliumNavHost 传递的 savedStateHandle 结果
+    var refreshKey by remember { mutableStateOf(0L) }
+    LaunchedEffect(refreshKey) {
+        if (refreshKey > 0) viewModel.refreshEquipment()
+    }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                // 每次页面恢复时检查是否有设备更新标志
+                refreshKey = System.currentTimeMillis()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     Scaffold(
         topBar = {
@@ -98,7 +124,14 @@ fun RecordDetailScreen(
                 state.error != null -> Box(Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     Text(state.error!!, color = MaterialTheme.colorScheme.error) }
                 state.input != null && state.result != null -> {
-                    DetailContent(input = state.input!!, result = state.result!!, modifier = Modifier.padding(padding))
+                    DetailContent(
+                        input = state.input!!,
+                        result = state.result!!,
+                        equipment = state.equipment,
+                        onEquipmentClick = if (onOpenEquipmentSelector != {})
+                            { { onOpenEquipmentSelector(viewModel.getSavedEquipmentIds()) } }
+                        else null,
+                        modifier = Modifier.padding(padding))
                 }
             }
         }
@@ -106,7 +139,13 @@ fun RecordDetailScreen(
 }
 
 @Composable
-private fun DetailContent(input: TestInput, result: TestResult, modifier: Modifier = Modifier) {
+private fun DetailContent(
+    input: TestInput,
+    result: TestResult,
+    equipment: List<EquipmentEntity> = emptyList(),
+    onEquipmentClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+) {
     Column(
         modifier = modifier.verticalScroll(rememberScrollState()).padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),       // 模块间呼吸感
@@ -198,6 +237,52 @@ private fun DetailContent(input: TestInput, result: TestResult, modifier: Modifi
                 }
             }
         }
+
+        // ── 试验设备 ──
+        if (onEquipmentClick != null) {
+            Spacer(Modifier.height(8.dp))
+            OutlinedButton(
+                onClick = onEquipmentClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(14.dp),
+            ) {
+                Text(
+                    if (equipment.isEmpty()) "+ 记录测试设备" else "修改测试设备 (${equipment.size} 台)",
+                    style = MaterialTheme.typography.labelLarge,
+                )
+            }
+            if (equipment.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Surface(shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text("试验设备", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleSmall)
+                        Spacer(Modifier.height(6.dp))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        equipment.forEach { eq ->
+                            val now = System.currentTimeMillis()
+                            val expired = eq.calibrationDueDate in 1 until now
+                            Column(modifier = Modifier.padding(vertical = 6.dp)) {
+                                Text("${eq.name}  ${eq.model}", fontWeight = FontWeight.SemiBold,
+                                    style = MaterialTheme.typography.bodyMedium)
+                                Text("编号: ${eq.serialNo}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                if (eq.calibrationDueDate > 0) {
+                                    val fmt = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+                                    Text("有效期: ${fmt.format(java.util.Date(eq.calibrationDueDate))}",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = if (expired) FailRed else MaterialTheme.colorScheme.onSurfaceVariant)
+                                }
+                            }
+                            if (eq != equipment.last()) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                    }
+                }
+            }
+        }
+
         Spacer(Modifier.height(32.dp))
     }
 }

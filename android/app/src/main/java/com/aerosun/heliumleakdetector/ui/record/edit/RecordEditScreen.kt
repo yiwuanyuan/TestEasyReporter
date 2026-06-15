@@ -52,6 +52,8 @@ private val ColorAutoCalc = Color(0xFFFFFFFF)          // 自动计算 — 白
 fun RecordEditScreen(
     recordId: Long?,
     onNavigateBack: () -> Unit,
+    onOpenEquipmentSelector: (Set<Long>) -> Unit = {},
+    onEquipmentResult: Set<Long>? = null,
     viewModel: RecordEditViewModel = hiltViewModel(),
 ) {
     LaunchedEffect(recordId) { viewModel.initialize(recordId) }
@@ -61,11 +63,19 @@ fun RecordEditScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
 
+    // 处理 EquipmentSelector 返回的设备选择结果
+    if (onEquipmentResult != null) {
+        LaunchedEffect(onEquipmentResult) {
+            viewModel.onEquipmentSelected(onEquipmentResult)
+        }
+    }
+
     LaunchedEffect(Unit) {
         viewModel.events.collect { event ->
             when (event) {
                 is RecordEditViewModel.EditEvent.NavigateBack -> onNavigateBack()
                 is RecordEditViewModel.EditEvent.ShowError -> { /* Snackbar */ }
+                is RecordEditViewModel.EditEvent.OpenEquipmentSelector -> onOpenEquipmentSelector(event.currentIds)
             }
         }
     }
@@ -73,7 +83,8 @@ fun RecordEditScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(if (isEdit) "编辑检测记录" else "新 建 检 测 记 录") },
+                title = { Text(if (isEdit) "编辑检测记录" else "新建检测记录",
+                    style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold) },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "返回")
@@ -176,6 +187,10 @@ fun RecordEditScreen(
                     value = input.productName, onValueChange = { onUpdate(input.copy(productName = it)) },
                     label = { Text("产品名称") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
                 )
+                OutlinedTextField(
+                    value = input.productSerialNo, onValueChange = { onUpdate(input.copy(productSerialNo = it)) },
+                    label = { Text("出厂编号（可选）") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
+                )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
                         value = input.weldName, onValueChange = { onUpdate(input.copy(weldName = it)) },
@@ -188,16 +203,16 @@ fun RecordEditScreen(
                 }
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
-                        value = input.temperature.toString(),
-                        onValueChange = { it.toDoubleOrNull()?.let { t -> onUpdate(input.copy(temperature = t)) } },
+                        value = state.tempText,
+                        onValueChange = { viewModel.onTextChanged("temperature", it) },
                         label = { Text("温度 (°C)") }, modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         isError = state.validationErrors.containsKey("temperature"),
                         prefix = { Text("🌡 ") },
                     )
                     OutlinedTextField(
-                        value = input.humidity.toString(),
-                        onValueChange = { it.toDoubleOrNull()?.let { h -> onUpdate(input.copy(humidity = h)) } },
+                        value = state.humidityText,
+                        onValueChange = { viewModel.onTextChanged("humidity", it) },
                         label = { Text("湿度 (%)") }, modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         prefix = { Text("💧 ") },
@@ -289,14 +304,14 @@ fun RecordEditScreen(
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     OutlinedTextField(
-                        value = input.tResponse.toString(),
-                        onValueChange = { it.toDoubleOrNull()?.let { t -> onUpdate(input.copy(tResponse = t)) } },
+                        value = state.tResponseText,
+                        onValueChange = { viewModel.onTextChanged("tResponse", it) },
                         label = { Text("反应时间 (s)") }, modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     )
                     OutlinedTextField(
-                        value = input.tgPercent.toString(),
-                        onValueChange = { it.toDoubleOrNull()?.let { t -> onUpdate(input.copy(tgPercent = t)) } },
+                        value = state.tgPercentText,
+                        onValueChange = { viewModel.onTextChanged("tgPercent", it) },
                         label = { Text("氦浓度 TG%") }, modifier = Modifier.weight(1f),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         isError = state.validationErrors.containsKey("tgPercent"),
@@ -339,6 +354,8 @@ fun RecordEditScreen(
             onDismiss = { viewModel.onDismissResult() },
             onSave = { viewModel.onSave() },
             isSaving = state.isSaving,
+            selectedEquipment = state.selectedEquipment,
+            onEquipmentClick = { viewModel.onRequestEquipmentSelection() },
         )
     }
 }

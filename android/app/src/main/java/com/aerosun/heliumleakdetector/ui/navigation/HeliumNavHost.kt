@@ -11,6 +11,9 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -20,9 +23,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.aerosun.heliumleakdetector.ui.record.detail.RecordDetailScreen
 import com.aerosun.heliumleakdetector.ui.equipment.EquipmentEditScreen
 import com.aerosun.heliumleakdetector.ui.equipment.EquipmentListScreen
+import com.aerosun.heliumleakdetector.ui.equipment.EquipmentSelectorScreen
 import com.aerosun.heliumleakdetector.ui.help.HelpScreen
 import com.aerosun.heliumleakdetector.ui.record.detail.RecordDetailScreen
 import com.aerosun.heliumleakdetector.ui.record.edit.RecordEditScreen
@@ -70,6 +73,8 @@ fun HeliumNavHost() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDest = navBackStackEntry?.destination
+    // 设备选择结果缓存（避免 savedStateHandle 时序问题）
+    val pendingEquipmentResult = remember { mutableStateOf<Set<Long>?>(null) }
 
     // 判断是否显示底部导航栏（仅一级页面显示）
     val showBottomBar = bottomNavItems.any { item ->
@@ -77,6 +82,8 @@ fun HeliumNavHost() {
     }
 
     Scaffold(
+        modifier = Modifier.fillMaxSize(),
+        containerColor = MaterialTheme.colorScheme.surface,
         bottomBar = {
             if (showBottomBar) {
                 NavigationBar {
@@ -104,7 +111,7 @@ fun HeliumNavHost() {
         NavHost(
             navController = navController,
             startDestination = Routes.RecordList,
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
         ) {
             // 首页 — 记录列表
             composable<Routes.RecordList> {
@@ -116,18 +123,36 @@ fun HeliumNavHost() {
 
             // 新建记录
             composable<Routes.RecordCreate> {
+                val result = pendingEquipmentResult.value
+                pendingEquipmentResult.value = null  // 消费后立即清空
+
                 RecordEditScreen(
                     recordId = null,
                     onNavigateBack = { navController.popBackStack() },
+                    onOpenEquipmentSelector = { _ ->
+                        navController.navigate(Routes.EquipmentSelector()) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onEquipmentResult = result,
                 )
             }
 
             // 编辑记录
             composable<Routes.RecordEdit> { backStackEntry ->
                 val route = backStackEntry.toRoute<Routes.RecordEdit>()
+                val result = pendingEquipmentResult.value
+                pendingEquipmentResult.value = null
+
                 RecordEditScreen(
                     recordId = route.recordId,
                     onNavigateBack = { navController.popBackStack() },
+                    onOpenEquipmentSelector = { _ ->
+                        navController.navigate(Routes.EquipmentSelector(fromRecordId = route.recordId)) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onEquipmentResult = result,
                 )
             }
 
@@ -137,6 +162,11 @@ fun HeliumNavHost() {
                 RecordDetailScreen(
                     recordId = route.recordId,
                     onNavigateBack = { navController.popBackStack() },
+                    onOpenEquipmentSelector = { _ ->
+                        navController.navigate(Routes.EquipmentSelector(fromRecordId = route.recordId)) {
+                            launchSingleTop = true
+                        }
+                    },
                 )
             }
 
@@ -162,6 +192,40 @@ fun HeliumNavHost() {
                 EquipmentEditScreen(
                     equipmentId = route.equipmentId,
                     onNavigateBack = { navController.popBackStack() },
+                )
+            }
+
+            // 试验设备选择器
+            composable<Routes.EquipmentSelector> { backStackEntry ->
+                val route = backStackEntry.toRoute<Routes.EquipmentSelector>()
+                EquipmentSelectorScreen(
+                    preselectedIds = emptySet(),
+                    onNavigateBack = { navController.popBackStack() },
+                    onSave = { ids ->
+                        // 如果有 sourceRecordId, 直接更新数据库中的 equipment_ids
+                        val recordId = route.fromRecordId
+                        if (recordId > 0) {
+                            try {
+                                val db = androidx.room.Room.databaseBuilder(
+                                    navController.context.applicationContext,
+                                    com.aerosun.heliumleakdetector.data.local.HeliumDatabase::class.java,
+                                    "helium_database"
+                                ).build()
+                                kotlinx.coroutines.runBlocking {
+                                    val entity = db.recordDao().getById(recordId)
+                                    if (entity != null) {
+                                        val eqJson = if (ids.isEmpty()) "" else com.google.gson.Gson().toJson(ids.toList())
+                                        db.recordDao().update(entity.copy(equipmentIds = eqJson))
+                                    }
+                                }
+                                db.close()
+                            } catch (_: Exception) {}
+                        } else {
+                            // 新建记录场景：通过 pendingEquipmentResult 传递回 RecordEditScreen
+                            pendingEquipmentResult.value = ids
+                        }
+                        navController.popBackStack()
+                    },
                 )
             }
 

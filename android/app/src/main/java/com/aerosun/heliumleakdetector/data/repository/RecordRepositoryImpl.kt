@@ -38,4 +38,10 @@ class RecordRepositoryImpl @Inject constructor(
 
     override suspend fun count(): Int =
         recordDao.count()
+
+    override fun getByDateFlow(date: String): Flow<List<DetectionRecordEntity>> =
+        recordDao.getByDateFlow(date)
+
+    override fun getAllDatesFlow(): Flow<List<String>> =
+        recordDao.getAllDatesFlow()
 }
